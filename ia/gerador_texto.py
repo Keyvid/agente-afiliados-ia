@@ -54,11 +54,10 @@ def criar_copy_vendas_curta(nome_produto, preco_antigo, preco_novo, link):
     - Link: {link}
 
     FORMATO OBRIGATÓRIO (MÁXIMO 4 LINHAS):
-    🚨 ****
-    💰 ~~**R$**~~ ( OFF)
-    💸 👉 **R$**
-    🛍️ Compre aqui: ****
-    """
+    🚨 NOME DO PRODUTO AQUI
+    💰 <s>R$ PREÇO ANTIGO AQUI</s> (XX% OFF)
+    💸 👉 <b>R$ PREÇO NOVO AQUI</b>
+    🛍️ Compre aqui: LINK DO PRODUTO AQUI """
     
     resposta = modelo.generate_content(prompt)
     return resposta.text

@@ -20,11 +20,11 @@ def enviar_mensagem_telegram(texto):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     
     # Preparamos os dados que vamos enviar (o 'payload')
-    # parse_mode="Markdown" é crucial para o Telegram entender os emojis e o negrito da nossa IA
+    # parse_mode="Markdown" é para o Telegram entender os emojis e o negrito
     dados = {
         "chat_id": CHAT_ID,
         "text": texto,
-        "parse_mode": "Markdown"
+        "parse_mode": "HTML"
     }
     
     print("📲 Enviando mensagem para o grupo do Telegram...")
