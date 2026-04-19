@@ -48,19 +48,70 @@ def buscar_dados_produto(url_produto):
             except:
                 preco_antigo = preco_novo
 
+            # 4. Mira Sniper na Foto Principal (ADICIONE ESTE BLOCO!)
+            try:
+                # Busca a etiqueta oficial de imagem da Magalu e pega o link
+                url_foto = pagina.locator('[data-testid="image-default"]').first.get_attribute("src")
+            except:
+                # Imagem de segurança caso o site mude ou dê erro
+                url_foto = "https://via.placeholder.com/400?text=Foto+Indisponivel"
+
+            # O pacote final que é entregue ao main.py (TEM QUE TER A FOTO AQUI)
             return {
                 "nome": nome_produto,
                 "preco_antigo": preco_antigo,
                 "preco_novo": preco_novo,
-                "link": url_produto
+                "link": url_produto,
+                "foto": url_foto
             }
-
+            
         except Exception as erro:
-            print(f"❌ Erro na raspagem: {erro}")
+            print(f"❌ Erro ao extrair dados da página: {erro}")
             return None
         finally:
             navegador.close()
-
+def cacar_link_oferta_do_dia():
+    """
+    Acessa uma categoria específica e captura automaticamente o link de um produto.
+    """
+    print("🎯 Caçador ativado: Procurando a oferta do dia...")
+    
+    with sync_playwright() as p:
+        # O Truque Ninja: Desativa a flag de automação do Chrome
+        navegador = p.chromium.launch(
+            headless=False,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
+        
+        contexto = navegador.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width": 1280, "height": 720}
+        )
+        pagina = contexto.new_page()
+        
+        try:
+            # Entrando pela porta lateral: Categoria de Celulares (menos bloqueios)
+            pagina.goto("https://www.magazineluiza.com.br/celulares-e-smartphones/l/te/", timeout=60000)
+            
+            # Esperamos 5 segundos fingindo ser um humano lendo a tela
+            pagina.wait_for_timeout(5000) 
+            
+            # Caçamos o primeiro link de produto
+            link_bruto = pagina.locator('a[href*="/p/"]').first.get_attribute('href')
+            
+            if link_bruto.startswith("/"):
+                link_completo = "https://www.magazineluiza.com.br" + link_bruto
+            else:
+                link_completo = link_bruto
+                
+            print(f"🔗 Produto encontrado: {link_completo}")
+            return link_completo
+            
+        except Exception as erro:
+            print(f"❌ O Caçador falhou em achar um link: {erro}")
+            return None
+        finally:
+            navegador.close()
 # --- Bloco de Teste Isolado ---
 if __name__ == "__main__":
     # Link do Motorola
