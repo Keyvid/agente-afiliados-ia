@@ -1,53 +1,65 @@
-import os
 import requests
+import os
 from dotenv import load_dotenv
 
-# 1. Carrega as senhas do arquivo .env
-load_dotenv()
+load_dotenv() 
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+# Puxa as chaves com segurança no arquivo .env
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-def enviar_mensagem_telegram(texto):
+def enviar_mensagem_telegram(mensagem_html, url_foto):
     """
-    Consome a API do Telegram para enviar a mensagem formatada para o grupo.
+    Envia uma foto com legenda (em HTML) para o Telegram.
+    Se a foto falhar, tenta enviar pelo menos o texto.
     """
-    if not TOKEN or not CHAT_ID:
-        print("❌ Erro: Token ou Chat ID ausentes no arquivo .env!")
+    
+    # Nova URL: Enviar foto
+    url_api = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+    
+    # O pacote que enviaremos para o servidor do Telegram
+    dados = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "photo": url_foto,
+        "caption": mensagem_html,  # O texto agora vai na legenda da foto
+        "parse_mode": "HTML"       # Avisamos o Telegram para respeitar o negrito/itálico
+    }
+
+    try:
+        # Enviamos tudo empacotado para o Telegram
+        resposta = requests.post(url_api, data=dados)
+        
+        if resposta.status_code == 200:
+            print("🚀 MENSAGEM COM FOTO ENVIADA PARA O TELEGRAM!")
+            return True
+        else:
+            print(f"❌ Erro do servidor do Telegram: {resposta.text}")
+            
+            # Plano B: Se o link da foto estiver quebrado, a gente envia só o texto para não perder a venda
+            print("Tentando enviar apenas o texto como plano B...")
+            return enviar_apenas_texto(mensagem_html)
+
+    except Exception as e:
+        print(f"❌ Falha de conexão com o Telegram: {e}")
         return False
 
-    # URL oficial da API do Telegram para envio de mensagens
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    
-    # Preparamos os dados que vamos enviar (o 'payload')
-    # parse_mode="Markdown" é para o Telegram entender os emojis e o negrito
+def enviar_apenas_texto(mensagem_html):
+    """ Função de backup (A que usávamos antes) """
+    url_api = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     dados = {
-        "chat_id": CHAT_ID,
-        "text": texto,
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": mensagem_html,
         "parse_mode": "HTML"
     }
     
-    print("📲 Enviando mensagem para o grupo do Telegram...")
-    
     try:
-        # Fazemos a requisição do tipo POST para o servidor do Telegram
-        resposta = requests.post(url, json=dados)
-        
-        # Verifica se o servidor respondeu com sucesso (código 200)
-        if resposta.status_code == 200:
-            print("✅ Mensagem enviada com sucesso!")
-            return True
-        else:
-            print(f"❌ Falha no envio. Código do erro: {resposta.status_code}")
-            print(resposta.text)
-            return False
-            
-    except Exception as erro:
-        print(f"❌ Erro de conexão com a internet: {erro}")
+        resposta = requests.post(url_api, data=dados)
+        return resposta.status_code == 200
+    except:
         return False
 
-# --- Bloco de Teste Isolado ---
-# Só será executado se rodarmos este arquivo diretamente
+# Bloco de Teste
 if __name__ == "__main__":
-    texto_teste = "🚨 **Teste de Sistema Inicializado!**\n\nSeu Cérebro de IA e seu Publicador estão conectados. O Agente de Ofertas está oficialmente online! 🤖🚀"
-    enviar_mensagem_telegram(texto_teste)
+    teste_texto = "<b>🔥 TESTE COM FOTO!</b>\n\nEssa é a versão 2.0 do robô!"
+    teste_foto = "https://m.media-amazon.com/images/I/41m-Bq184fL._AC_SX522_.jpg"
+    enviar_mensagem_telegram(teste_texto, teste_foto)

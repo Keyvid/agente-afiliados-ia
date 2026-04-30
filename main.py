@@ -1,68 +1,59 @@
-import time
-import schedule
+import os
+from ia.gerador_texto import gerar_texto_promocional
+from publicadores.telegram_bot import enviar_apenas_texto
 
-from coletores.scraper_magalu import buscar_dados_produto, cacar_link_oferta_do_dia
-from ia.gerador_texto import criar_copy_vendas_curta
-from publicadores.telegram_bot import enviar_mensagem_telegram
+def extrair_nome_do_link(url):
+    """
+    Pega um link como: .../mochila-masculina-impermeavel/p/123...
+    E transforma em: Mochila Masculina Impermeavel
+    """
+    try:
+        # Pega só a parte do nome
+        parte_nome = url.split("magazineluiza.com.br/")[1].split("/")[0]
+        # Troca os tracinhos por espaços e coloca as Iniciais Maiúsculas
+        return parte_nome.replace("-", " ").title()
+    except:
+        return "Produto em Oferta"
 
 def rodada_de_automacao():
     print("\n" + "="*50)
-    print(" Iniciando nova busca automática de Ofertas")
+    print(" 🚀 AGENTE DE OFERTAS - MODO TURBO")
     print("="*50)
 
-    #O robo acha o link sozinho
-    link_oferta = cacar_link_oferta_do_dia()
-
-    if not link_oferta:
-        print("Sem links hoje. Voltando a dormir...")
+    # 1. Coleta Manual Rápida
+    link = input("🔗 Cole o link da Magalu: ")
+    
+    if not link.strip():
+        print("Nenhum link fornecido. Encerrando...")
         return
+        
+    preco_antigo = input("❌ Qual o preço antigo? (ex: 1500,00): R$ ")
+    preco_novo = input("✅ Qual o preço novo? (ex: 999,00): R$ ")
 
-    # Os olhos (Scraper extraindo dados e foto)
-    print("\n Passo 1: Acessando a loja e extraindo dados...")
-    dados = buscar_dados_produto(link_oferta)
+    # 2. Inteligência: Pega o nome do produto lendo a própria URL
+    nome_produto = extrair_nome_do_link(link)
+    print(f"\n📦 Produto identificado: {nome_produto}")
 
-    if not dados:
-        print("Falha na coleta. Abortando esta rodada.")
-        return
+    # (O código de cima continua igual...)
 
-    # O Cérebro (IA)
-    print("\n Passo 2: IA formulando a copy persuasiva...")
-    nome = dados['nome']
-    de = dados['preco_antigo']
-    por = dados['preco_novo']
-    link = dados['link']
-    foto_do_produto = dados['foto']
+    # 3. Inteligência: Pega o nome do produto lendo a própria URL
+    nome_produto = extrair_nome_do_link(link)
+    print(f"\n📦 Produto identificado: {nome_produto}")
 
-    texto_final = criar_copy_vendas_curta(nome, de, por, link)
+    # 4. A IA entra em ação (Entregando os 4 itens separados!)
+    print("\n✍️ Passando para a IA gerar a copy...")
+    texto_final = gerar_texto_promocional(nome_produto, f"R$ {preco_antigo}", f"R$ {preco_novo}", link)
 
-    if not texto_final:
-        print("A IA falhou em gerar o texto. Abortando...")
-        return
+    # 5. Publicação
+    if texto_final:
+        print("\n🚀 Publicando no Telegram...")
+        # Usamos a função de texto puro, para o Telegram gerar o card com a foto sozinho!
+        sucesso = enviar_apenas_texto(texto_final)
+        
+        if sucesso:
+            print("✨ SUCESSO! Oferta publicada no seu grupo!")
+        else:
+            print("❌ Falha ao publicar no Telegram.")
 
-    # A boca (Telegram sem perguntar nada!)
-    print("\n Passo 3: Publicando no Telegram...")
-    sucesso = enviar_mensagem_telegram(texto_final, foto_do_produto)
-
-    if sucesso:
-        print("OFERTA PUBLICADA COM SUCESSO DE FORMA 100% AUTOMATÁTICA!")
-
-    else:
-        print("Erro ao enviar para o Telegram.")
-
-# ==========================================
-# O RELÓGIO (O coração da Automação)
-# ==========================================
 if __name__ == "__main__":
-    print("🤖 SISTEMA AUTÔNOMO LIGADO. Pressione Ctrl+C para desligar.")
-    
-    # Para testar agora, ele vai rodar a primeira vez imediatamente
     rodada_de_automacao()
-    
-    # Aqui define o intervalo! (Ex: a cada 2 horas)
-    schedule.every(1).hours.do(rodada_de_automacao)
-    # schedule.every(30).minutes.do(rodada_de_automacao) # Opção para minutos
-    
-    # O laço infinito que mantém o programa vivo em segundo plano
-    while True:
-        schedule.run_pending()
-        time.sleep(60) # O relógio checa se deu a hora a cada 60 segundos

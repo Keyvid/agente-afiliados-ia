@@ -14,7 +14,7 @@ genai.configure(api_key=CHAVE_API)
 # 3. Define qual versão da IA vamos usar
 modelo = genai.GenerativeModel('gemini-2.5-flash')
 
-def criar_copy_vendas_curta(nome_produto, preco_antigo, preco_novo, link):
+def gerar_texto_promocional(nome_produto, preco_antigo, preco_novo, link):
     """
     Envia os dados para o Gemini criar um texto promocional super direto e curto, modelado para grupos de ofertas.
     A porcentagem de desconto é calculada previamente no Python para garantir precisão total e velocidade.
@@ -66,11 +66,11 @@ def criar_copy_vendas_curta(nome_produto, preco_antigo, preco_novo, link):
 # Esse código só roda se você executar este arquivo diretamente
 if __name__ == "__main__":
     # Teste com dados simulados realistas
-    texto_gerado_curto = criar_copy_vendas_curta(
+    texto_gerado_curto = gerar_texto_promocional(
         nome_produto="Smart TV LG 55 polegadas 4K",
         preco_antigo="3.500,00",
         preco_novo="2.199,00",
-        # Simula o seu link final encurtado, como meli.la/sua-loja-tv
+        # Simula o seu link final encurtado Ex.: meli.la/sua-loja-tv
         link="https://meli.la/sua-loja-tv" 
     )
     

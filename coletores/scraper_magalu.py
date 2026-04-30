@@ -56,7 +56,7 @@ def buscar_dados_produto(url_produto):
                 # Imagem de segurança caso o site mude ou dê erro
                 url_foto = "https://via.placeholder.com/400?text=Foto+Indisponivel"
 
-            # O pacote final que é entregue ao main.py (TEM QUE TER A FOTO AQUI)
+            # O pacote final que é entregue ao main.py 
             return {
                 "nome": nome_produto,
                 "preco_antigo": preco_antigo,
