@@ -32,7 +32,7 @@ def gerar_texto_promocional(nome_produto, preco_antigo, preco_novo, link, cupom,
     2. Mostre o preço antigo e o novo.
     3. Se houver um cupom de desconto listado acima, coloque-o com muito destaque logo abaixo do Preço Novo.
     4. Se houver uma observação listada acima, coloque-a como um aviso extra logo abaixo do cupom.
-    5. Coloque o link de compra no final.
+    5. Coloque o link de compra no final, de forma PURA. Não use NENHUMA formatação Markdown no link (não coloque entre colchetes e parênteses). Apenas cole a URL crua no final da mensagem.
     """
     
     resposta = modelo.generate_content(prompt)
