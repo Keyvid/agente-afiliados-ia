@@ -3,8 +3,6 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 
 # 1. Carrega as variáveis ocultas do arquivo .env com segurança
-# Certifique-se de que o arquivo .env está na raiz do projeto, no mesmo nível do main.py
-# (como você já confirmou que está!)
 load_dotenv()
 
 # 2. Puxa a chave da IA com segurança
@@ -14,50 +12,28 @@ genai.configure(api_key=CHAVE_API)
 # 3. Define qual versão da IA vamos usar
 modelo = genai.GenerativeModel('gemini-2.5-flash')
 
-def gerar_texto_promocional(nome_produto, preco_antigo, preco_novo, link):
-    """
-    Envia os dados para o Gemini criar um texto promocional super direto e curto, modelado para grupos de ofertas.
-    A porcentagem de desconto é calculada previamente no Python para garantir precisão total e velocidade.
-    """
-    # --- Cálculo da Porcentagem de Desconto no Python (Pre-calculation) ---
-    try:
-        # Pre-process prices to floats for calculation (handle commas/dots as needed for BR currency)
-        # Assuming input prices come from the collector in a reliable format with commas.
-        p_antigo_float = float(preco_antigo.replace(".", "").replace(",", "."))
-        p_novo_float = float(preco_novo.replace(".", "").replace(",", "."))
-        
-        if p_antigo_float > 0:
-            desconto = p_antigo_float - p_novo_float
-            porcentagem = (desconto / p_antigo_float) * 100
-            # Formata para 0 casas decimais para concisão, ex: "50%"
-            porcentagem_str = f"{porcentagem:.0f}%" 
-        else:
-            porcentagem_str = "0%" # Fallback para preço antigo inválido
-            
-    except ValueError:
-        # Fallback em caso de formatos de preço estranhos vindo do coletor
-        porcentagem_str = "XX%" 
-        print("⚠️ Erro ao calcular desconto. Usando 'XX%'. Verifique os formatos de preço vindo do coletor.")
-
-    # --- Engenharia de Prompt para Copy Concisa ---
-    print("🧠 IA gerando copy super rápida e direta...")
+# Adicionamos 'cupom' e 'observacao' na recepção
+def gerar_texto_promocional(nome_produto, preco_antigo, preco_novo, link, cupom, observacao):
+    
+    # Lógica ninja do Python: Só cria a linha se você tiver digitado algo
+    texto_cupom = f"\n🎟️ Use o cupom: {cupom}" if cupom.strip() else ""
+    texto_obs = f"\n⚠️ Observação: {observacao}" if observacao.strip() else ""
 
     prompt = f"""
-    Atue como um especialista em marketing de afiliados para grupos de ofertas super diretas e visuais no WhatsApp/Telegram.
-    Crie um texto de mensagem promocional EXATAMENTE no formato de 4 linhas abaixo, sem texto adicional. Este texto será pareado com a imagem do produto.
-
-    DADOS DO PRODUTO (USE ESTES DADOS, NÃO INVENTE):
-    - Descrição/Marca: {nome_produto}
-    - Preço Antigo: R$ {preco_antigo}
-    - Preço Novo: R$ {preco_novo}
-    - Porcentagem de Desconto: {porcentagem_str}
-    - Link: {link}
-
-    FORMATO OBRIGATÓRIO (MÁXIMO 4 LINHAS):
-    🚨 NOME DO PRODUTO AQUI
-    💰 <s>R$ PREÇO ANTIGO AQUI</s> (XX% OFF)
-    💸 👉 <b>R$ PREÇO NOVO AQUI</b>
-    🛍️ Compre aqui: LINK DO PRODUTO AQUI """
+    Você é um especialista em vendas no Telegram. Crie uma mensagem curta e persuasiva.
+    
+    Produto: {nome_produto}
+    Preço Antigo: {preco_antigo}
+    Preço Novo: {preco_novo}{texto_cupom}{texto_obs}
+    Link da oferta: {link}
+    
+    Regras:
+    1. Seja direto e use emojis.
+    2. Mostre o preço antigo e o novo.
+    3. Se houver um cupom de desconto listado acima, coloque-o com muito destaque logo abaixo do Preço Novo.
+    4. Se houver uma observação listada acima, coloque-a como um aviso extra logo abaixo do cupom.
+    5. Coloque o link de compra no final.
+    """
     
     resposta = modelo.generate_content(prompt)
     return resposta.text
